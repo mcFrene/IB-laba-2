@@ -1,22 +1,15 @@
 const fs = require("fs");
 
-// const analysisTable = [
-//     "О", "И", "Е", "А", "Н", "Т", "С", "Р", "В",
-//     "Л", "К", "М", "Д", "П", "У", "Я", "Ы", "Ь",
-//     "Г", "З", "Б", "Ч", "Х", "Ж", "Ш", "Ю",
-//     "Ц", "Щ", "Э", "Ф", "Ъ", "Ё"
-// ]
-
 const analysisTable = [
-    "О", "Е", "А", "И", "Н", "Т", "С", "Р", "В",
-    "Л", "К", "М", "Д", "П", "У", "Я", "Ы", "Ь",
-    "Г", "З", "Б", "Ч", "Й", "Х", "Ж", "Ш", "Ю",
-    "Ц", "Щ", "Э", "Ф", "Ъ", "Ё"
+    " ", "И", "О", "Е", "А", "Т", "Н", "Р", "С", "В",
+    "Л", "К", "М", "П", "Я", "Ы", "Ь", "Д", "З",
+    "У", "Б", "Ч", "Ф", "Ш", "Г", "Х", "Щ", "Ю",
+    "Ц", "Ж", "Э", "Й", "Ъ", "Ё"
 ]
 
 const PATH = {
     preparedText: "./rawText.txt",
-    decryptionText: "./result/decryptionText.txt",
+    decryptedText: "./result/decryptedText.txt",
     decryptionKey: "./result/decryptionKey.txt",
     resultStat: "./result/resultStat.txt", 
 }
@@ -67,6 +60,36 @@ function getDecryptionKey(resultStat){
     return result;
 }
 
+function findWords(text){
+    let parts = [];
+    let partLen = 10;
+    let part;
+
+    while(partLen >= 3){
+        distArr = [];
+        for(let i=0; i<text.length-partLen+1; i++){
+            part = text.slice(i, i+partLen);
+            lastIndex = i;
+            do{
+                currentIndex = text.indexOf(part, lastIndex + partLen);
+                if(currentIndex !== -1){
+                    distArr.push(currentIndex - lastIndex);
+                    lastIndex = currentIndex;
+                }
+            }
+            while(currentIndex !== -1);  
+        }
+
+        if(distArr.length > 1){
+            parts.push({word: part, qty: distArr.length});
+            partLen--;
+        }
+        else
+            partLen--;   
+    }
+    return parts;
+}
+
 function decipherText(text, key){
     let result = [];
 
@@ -74,7 +97,8 @@ function decipherText(text, key){
         result.push(key[s]);
     }
 
-    writeText(PATH.decryptionText, result.join(""), "decryptionText writed");
+    writeText(PATH.decryptedText, result.join(""), "decryptedText writed");
+    return result.join("");
 }
 
 async function main(){
@@ -82,7 +106,8 @@ async function main(){
     let resultStat = getResultStat(analyzeText(text));
     let decryptionKey = getDecryptionKey(resultStat);
 
-    decipherText(text, decryptionKey);
+    let decipheredText =  decipherText(text, decryptionKey);
+    findWords(decipheredText);
 }
 
 main();
